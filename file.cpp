@@ -55,5 +55,6 @@ file::once_add(list<string>::iterator& it)
     }
     l.erase(tmp);
     --it;
+    closedir(pDir);
     return 1;
 }
