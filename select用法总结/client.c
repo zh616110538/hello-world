@@ -9,7 +9,7 @@
 #include <sys/types.h>
 
 #define MAXDATASIZE 100
-#define SERVPORT 1234
+#define SERVPORT 5000
 #define MAXLINE 1024
 int main(int argc,char *argv[])
 {

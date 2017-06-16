@@ -11,18 +11,16 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-#define MAX_EVENTS 10
+#define MAX_EVENTS 10000
 #define port 5000
 
-void do_use_fd()
-{
-}
 
 int main()
 {
     char *buf = malloc(1024);
-    struct epoll_event ev, events[MAX_EVENTS];
-    int sockfd, conn_sock, nfds, epollfd;
+    struct epoll_event ev;
+	struct epoll_event *events = (struct epoll_event *)malloc(sizeof(ev)*MAX_EVENTS);
+    int n,sockfd, conn_sock, nfds, epollfd;
 
     /* Code to set up listening socket, 'sockfd',
        (socket(), bind(), listen()) omitted */
@@ -59,7 +57,7 @@ int main()
     }
 
     // convert the socket to listen for incoming connections
-    if (listen(sockfd,SOMAXCONN) < 0)
+    if (listen(sockfd,20) < 0)
     {
         perror("listen fail:");
         return -1;
@@ -89,7 +87,7 @@ int main()
             exit(EXIT_FAILURE);
         }
 
-        for (int n = 0; n < nfds; ++n)
+        for (n = 0; n < nfds; ++n)
         {
             if (events[n].data.fd == sockfd)
             {
@@ -112,7 +110,7 @@ int main()
             }
             else
             {
-                do_use_fd(events[n].data.fd);
+                //do_use_fd(events[n].data.fd);
                 reuse = recv(events[n].data.fd,buf,1024,0);
                 if(reuse <= 0)
                 {
@@ -131,4 +129,6 @@ int main()
             }
         }
     }
+	free(buf);
+	free(events);
 }

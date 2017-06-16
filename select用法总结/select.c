@@ -9,7 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define MYPORT 1234 //连接时使用的端口
+#define MYPORT 5000 //连接时使用的端口
 
 #define MAXCLINE 5 //连接队列中的个数
 
