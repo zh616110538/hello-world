@@ -1,207 +1,134 @@
+#include <errno.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <sys/time.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
+#include <sys/select.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdbool.h>
 
-#define MYPORT 5000 //连接时使用的端口
-
-#define MAXCLINE 5 //连接队列中的个数
-
-#define BUF_SIZE 200
-
-int fd[MAXCLINE]; //连接的fd
-
-int conn_amount; //当前的连接数
+#define MAX_EVENTS 10
+#define port 5000
+#define bufsize 1024
 
 
-void showclient()
+int main()
 {
-  int i;
-  printf("client amount:%d\n",conn_amount);
-  for(i=0;i<MAXCLINE;i++)
-  {
-    printf("[%d]:%d ",i,fd[i]);
-  }
-  printf("\n\n");
-}
+    char *buf = malloc(bufsize);
+    int i,maxi,maxfd,sockfd, connfd,ret,client[MAX_EVENTS];
+    ssize_t n;
+    fd_set rset,allset;
+    socklen_t clilen;
 
+    struct sockaddr_in sockfdaddr,client_addr;;
 
-int main(void)
-{
-  int sock_fd,new_fd; //监听套接字 连接套接字
+    // setup socket address structure
+    memset(&sockfdaddr,0,sizeof(sockfdaddr));
+    sockfdaddr.sin_family = AF_INET;
+    sockfdaddr.sin_port = htons(port);
+    sockfdaddr.sin_addr.s_addr = INADDR_ANY;
 
-  struct sockaddr_in server_addr; // 服务器的地址信息
-
-  struct sockaddr_in client_addr; //客户端的地址信息
-
-  socklen_t sin_size;
-  int yes = 1;
-  char buf[BUF_SIZE];
-  int ret;
-  int i;
-  //建立sock_fd套接字
-
-  if((sock_fd = socket(AF_INET,SOCK_STREAM,0))==-1)
-  {
-    perror("setsockopt");
-    exit(1);
-  }
-  //设置套接口的选项 SO_REUSEADDR 允许在同一个端口启动服务器的多个实例
-
-  // setsockopt的第二个参数SOL SOCKET 指定系统中，解释选项的级别 普通套接字
-
-  if(setsockopt(sock_fd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int))==-1)
-  {
-    perror("setsockopt error \n");
-    exit(1);
-  }
-  
-  server_addr.sin_family = AF_INET; //主机字节序
-
-  server_addr.sin_port = htons(MYPORT);
-  server_addr.sin_addr.s_addr = INADDR_ANY;//通配IP
-
-  memset(server_addr.sin_zero,'\0',sizeof(server_addr.sin_zero));
-
-  if(bind(sock_fd,(struct sockaddr *)&server_addr,sizeof(server_addr)) == -1)
-  {
-    perror("bind error!\n");
-    exit(1);
-  }
-
-  if(listen(sock_fd,MAXCLINE)==-1)
-  {
-    perror("listen error!\n");
-    exit(1);
-  }
-
-  printf("listen port %d\n",MYPORT);
-
-  fd_set fdsr; //文件描述符集的定义
-
-  int maxsock;
-  struct timeval tv;
-
-  conn_amount =0;
-  sin_size = sizeof(client_addr);
-  maxsock = sock_fd;
-
-  while(1)
-  {
-    //初始化文件描述符集合
-
-    FD_ZERO(&fdsr); //清除描述符集
-
-    FD_SET(sock_fd,&fdsr); //把sock_fd加入描述符集
-
-    //超时的设定
-
-    tv.tv_sec = 30;
-    tv.tv_usec =0;
-    //添加活动的连接
-
-    for(i=0;i<MAXCLINE;i++) 
+    // create socket
+    sockfd = socket(AF_INET,SOCK_STREAM,0);
+    if (!sockfd)
     {
-      if(fd[i]!=0)
-      {
-          FD_SET(fd[i],&fdsr);
-      }
+        perror("socket fail:");
+        return -1;
     }
-    //如果文件描述符中有连接请求 会做相应的处理，实现I/O的复用 多用户的连接通讯
 
-    ret = select(maxsock +1,&fdsr,NULL,NULL,&tv);
-    if(ret <0) //没有找到有效的连接 失败
-
+    // set socket to immediately reuse port when the application closes
+    int reuse = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
     {
-      perror("select error!\n");
-      break;
+        perror("setsockopt fail:");
+        return -1;
     }
-    else if(ret ==0)// 指定的时间到，
 
+    // call bind to associate the socket with our local address and
+    // port
+    if (bind(sockfd,(const struct sockaddr *)&sockfdaddr,sizeof(sockfdaddr)) < 0)
     {
-      printf("timeout \n");
-      continue;
+        perror("bind fail:");
+        return -1;
     }
-    //循环判断有效的连接是否有数据到达
 
-    for(i=0;i<conn_amount;i++)
+    // convert the socket to listen for incoming connections
+    if (listen(sockfd,SOMAXCONN) < 0)
     {
-      if(FD_ISSET(fd[i],&fdsr))
-      {
-        ret = recv(fd[i],buf,sizeof(buf),0);
-        if(ret <=0) //客户端连接关闭，清除文件描述符集中的相应的位
-
+        perror("listen fail:");
+        return -1;
+    }
+    maxfd = sockfd;
+    maxi = -1;
+    memset(client,-1,MAX_EVENTS*sizeof(int));
+    FD_ZERO(&allset);
+    FD_SET(sockfd,&allset);
+    for(;;)
+    {
+        rset = allset;
+        ret = select(maxfd+1,&rset,NULL,NULL,NULL);
+        if(ret < 0)
         {
-          printf("client[%d] close\n",i);
-          close(fd[i]);
-          FD_CLR(fd[i],&fdsr);
-          fd[i]=0;
-          conn_amount--;
-          
+            perror("select fail:");
+            return -1;
         }
-        //否则有相应的数据发送过来 ，进行相应的处理
-
-        else
+        if(FD_ISSET(sockfd,&rset))
         {
-          if(ret <BUF_SIZE)
-            memset(&buf[ret],'\0',1);
-          printf("client[%d] send:%s\n",i,buf);
-        }
-      }
-    }
-
-    if(FD_ISSET(sock_fd,&fdsr))
-      {
-        new_fd = accept(sock_fd,(struct sockaddr *)&client_addr,&sin_size);
-        if(new_fd <=0)
-        {
-          perror("accept error\n");
-          continue;
-        }
-        //添加新的fd 到数组中 判断有效的连接数是否小于最大的连接数，如果小于的话，就把新的连接套接字加入集合
-
-        if(conn_amount <MAXCLINE)
-        {
-          for(i=0;i< MAXCLINE;i++)
-          {
-            if(fd[i]==0)
+            clilen = sizeof(client_addr);
+            connfd = accept(sockfd,(struct sockaddr *)&client_addr,&clilen);
+            if(connfd < 0)
             {
-              fd[i] = new_fd;
-              break;
+                perror("accept fail:");
+                continue;
             }
-          }
-         conn_amount++;
-          printf("new connection client[%d]%s:%d\n",conn_amount,inet_ntoa(client_addr.sin_addr),ntohs(client_addr.sin_port));
-          if(new_fd > maxsock)
-          {
-            maxsock = new_fd;
-          }
-        }
-        
-          else
-          {
-            printf("max connections arrive ,exit\n");
-            send(new_fd,"bye",4,0);
-            close(new_fd);
-            continue;
-          }
-        }
-        showclient();
-      }
+            for(i=0; i<MAX_EVENTS; ++i)
+            {
+                if(client[i]<0)
+                {
+                    client[i] = connfd;
+                    break;
+                }
+            }
+            if(i == MAX_EVENTS)
+            {
 
-      for(i=0;i<MAXCLINE;i++)
-      {
-        if(fd[i]!=0)
-        {
-          close(fd[i]);
+                send(connfd,"bye",4,0);
+                close(connfd);
+                client[i] = -1;
+                continue;
+            }
+            FD_SET(connfd,&allset);
+            if(connfd > maxfd)
+                maxfd = connfd;
+            if(i > maxi)
+                maxi = i;
+            if( --ret <= 0)
+                continue;
         }
-      }
-      
-      exit(0);
-  } 
+        for(i=0; i<=maxi; ++i)
+        {
+            if(client[i] < 0)
+                continue;
+            if(FD_ISSET(client[i],&rset))
+            {
+                if((n = read(client[i],buf,bufsize))<= 0)
+                {
+                    close(client[i]);
+                    FD_CLR(client[i],&allset);
+                    client[i] = -1;
+                }
+                else
+                    printf("recv:%s\n",buf);
+                if(--ret <= 0)
+                    break;
+            }
+        }
+    }
+    free(buf);
+}
