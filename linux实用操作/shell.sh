@@ -8,3 +8,6 @@ sudo driftnet -i eth0
 
 #查看内核版本
 awk -F\' '$1=="menuentry " {print i++ " : " $2}' /etc/grub2.cfg
+
+#tcpdump用法
+tcpdump -s 0 -c 100 dst host 109.119.20.82 -w ./target.cap
