@@ -64,7 +64,7 @@ Tree* tree_successor(Tree *x)
 	if (x->r != NULL)
 		return tree_minimum(x->r);
 	Tree* y = x->p;
-	while (y != NULL || x == y->r)
+	while (y != NULL && x == y->r)
 	{
 		x = y;
 		y = x->p;
