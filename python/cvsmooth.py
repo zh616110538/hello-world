@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # def draw_circle(event,x,y,flags,param):
-# if event == cv2.EVENT_LBUTTONDBLCLK:
-# print(x,y)
+#     if event == cv2.EVENT_LBUTTONDBLCLK:
+#         print(x,y)
 #
 # img = cv2.imread('test.jpg')
 # img = cv2.resize(img,None,fx=0.25,fy=0.25,interpolation=cv2.INTER_CUBIC)
@@ -35,9 +35,9 @@ import matplotlib.pyplot as plt
 # titles = ['Original Image','BINARY','BINARY_INV','TRUNC','TOZERO','TOZERO_INV']
 # images = [img, thresh1, thresh2, thresh3, thresh4, thresh5]
 # for i in range(6):
-# plt.subplot(2,3,i+1),plt.imshow(images[i],'gray')
-# plt.title(titles[i])
-# plt.xticks([]),plt.yticks([])
+#     plt.subplot(2,3,i+1),plt.imshow(images[i],'gray')
+#     plt.title(titles[i])
+#     plt.xticks([]),plt.yticks([])
 # plt.show()
 
 import cv2
@@ -49,13 +49,13 @@ from matplotlib import pyplot as plt
 # th2 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,11,2)
 # th3 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
 # titles = ['Original Image', 'Global Thresholding (v = 127)',
-# 'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding']
+#             'Adaptive Mean Thresholding', 'Adaptive Gaussian Thresholding']
 # images = [img, th1, th2, th3]
 # for i in range(4):
-    # plt.subplot(2,2,i+1),plt.imshow(images[i],'gray')
-    # plt.title(titles[i])
-    # plt.xticks([]),plt.yticks([])
-    # plt.show()
+#     plt.subplot(2,2,i+1),plt.imshow(images[i],'gray')
+#     plt.title(titles[i])
+#     plt.xticks([]),plt.yticks([])
+# plt.show()
 
 import cv2
 import numpy as np

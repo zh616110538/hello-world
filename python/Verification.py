@@ -12,7 +12,7 @@ _numbers = ''.join(map(str, range(3, 10)))  # 数字
 init_chars = ''.join((_letter_cases, _upper_cases, _numbers))
 
 
-def create_validate_code(size=(120, 30),
+def create_validate_code(size=(20, 20),
                          chars=init_chars,
                          img_type="GIF",
                          mode="RGB",
@@ -20,7 +20,7 @@ def create_validate_code(size=(120, 30),
                          fg_color=(0, 0, 255),
                          font_size=18,
                          font_type="arial.ttf",
-                         length=4,
+                         length=1,
                          draw_lines=True,
                          n_line=(1, 2),
                          draw_points=True,
@@ -117,20 +117,20 @@ if __name__ == "__main__":
         # cv2.waitKeyEx(0)
         img = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
         img = cv2.medianBlur(img, 3)
-        im2, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(img, contours, -1, (0, 255, 0), 1)
-        ret, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-        plt.subplot(221),plt.imshow(img1,'gray')
-        plt.title('qian')
-        plt.subplot(222),plt.imshow(img,'gray')
-        plt.title('hou')
-        img_inv = 255 - img
-        img_inv = np.uint8(img_inv > 0)
-        y = np.sum(img_inv,0)
-        plt.subplot(224), plt.plot(y)
-        plt.title('zuo')
-        plt.show()
-        # cv2.imshow('img',img)
-        print(code_img[1])
+        # im2, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # cv2.drawContours(img, contours, -1, (0, 255, 0), 1)
+        # ret, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+        # plt.subplot(221),plt.imshow(img1,'gray')
+        # plt.title('qian')
+        # plt.subplot(222),plt.imshow(img,'gray')
+        # plt.title('hou')
+        # img_inv = 255 - img
+        # img_inv = np.uint8(img_inv > 0)
+        # y = np.sum(img_inv,0)
+        # plt.subplot(224), plt.plot(y)
+        # plt.title('zuo')
+        # plt.show()
+        cv2.imshow('img',img)
+        print(img)
         cv2.waitKeyEx(0)
         # code_img[0].save("zhuhao.jpg", "JPG")
