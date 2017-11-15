@@ -3,16 +3,17 @@
 import random
 import cv2
 import numpy as np
+import pickle
 from matplotlib import pyplot as plt
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 _letter_cases = "abcdefghjkmnpqrstuvwxy"  # 小写字母，去除可能干扰的i，l，o，z
 _upper_cases = _letter_cases.upper()  # 大写字母
-_numbers = ''.join(map(str, range(3, 10)))  # 数字
-init_chars = ''.join((_letter_cases, _upper_cases, _numbers))
+_numbers = ''.join(map(str, range(0, 10)))  # 数字
+# init_chars = ''.join((_letter_cases, _upper_cases, _numbers))
+init_chars = ''.join((_numbers))
 
-
-def create_validate_code(size=(20, 20),
+def create_validate_code(size=(28, 28),
                          chars=init_chars,
                          img_type="GIF",
                          mode="RGB",
@@ -110,13 +111,35 @@ def create_validate_code(size=(20, 20),
 
 
 if __name__ == "__main__":
-    for _ in range(100):
+    l1 = np.zeros([60000,784],dtype=np.float32)
+    l2 = np.zeros([60000,10],dtype=np.float32)
+
+    for i in range(60000):
         code_img = create_validate_code()
-        img1 = np.asarray(code_img[0])
+        img = np.asarray(code_img[0])
         # cv2.imshow('img', img1)
         # cv2.waitKeyEx(0)
-        img = cv2.cvtColor(img1,cv2.COLOR_BGR2GRAY)
+        img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         img = cv2.medianBlur(img, 3)
+        # img[img>0] = 1
+        # cv2.imshow('img',img)
+        # cv2.waitKeyEx(0)
+        b = np.zeros([1,10])
+        b[0,int(code_img[1])] = 1
+        l1[i] = np.reshape(img,[1,784])
+        l2[i] = b
+    l1.tolist()
+    l2.tolist()
+    l = [l1,l2]
+    # f = open('testdata','wb')
+    # pickle.dump(l,f)
+    # f.close()
+    f = open('somedata', 'wb')
+    pickle.dump(l,f)
+    f.close()
+        # cv2.imshow('img',img)
+        # print(code_img[1])
+        # cv2.waitKeyEx(1000)
         # im2, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         # cv2.drawContours(img, contours, -1, (0, 255, 0), 1)
         # ret, img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
@@ -130,7 +153,4 @@ if __name__ == "__main__":
         # plt.subplot(224), plt.plot(y)
         # plt.title('zuo')
         # plt.show()
-        cv2.imshow('img',img)
-        print(img)
-        cv2.waitKeyEx(0)
         # code_img[0].save("zhuhao.jpg", "JPG")

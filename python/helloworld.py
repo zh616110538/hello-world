@@ -1,20 +1,33 @@
 # coding=utf-8
 
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+# from tensorflow.examples.tutorials.mnist import input_data
+# mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
 import os
+import pickle
+import numpy as np
+import random
 import tensorflow as tf
-sess = tf.InteractiveSession()
+
+f = open('somedata', 'rb')
+l = pickle.load(f)
+f.close()
+f = open('testdata', 'rb')
+l_test = pickle.load(f)
+f.close()
+
+
+def next_batch(i,n):
+  return l[0][i*n%60000:i*n%60000+n],l[1][i*n%60000:i*n%60000+n]
 
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape=[None, 10])
 def weight_variable(shape):
-  initial = tf.truncated_normal(shape, stddev=0.1)
+  initial = tf.truncated_normal(shape, stddev=0.5)
   return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(0.1, shape=shape)
+  initial = tf.constant(0.5, shape=shape)
   return tf.Variable(initial)
 def conv2d(x, W):
   return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
@@ -52,18 +65,20 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
-  saver = tf.train.Saver()
-  # for i in range(20000):
-  #   batch = mnist.train.next_batch(50)
-  #   if i % 1000 == 0:
-  #     train_accuracy = accuracy.eval(feed_dict={
-  #         x: batch[0], y_: batch[1], keep_prob: 1.0})
-  #     print('step %d, training accuracy %g' % (i, train_accuracy))
-  #   train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
-  saver.restore(sess=sess,save_path='mnist/ckp')
+  # saver = tf.train.Saver()
+  for i in range(20000):
+    # batch = mnist.train.next_batch(50)
+    batch = next_batch(i,50)
+    if i % 100 == 0:
+      train_accuracy = accuracy.eval(feed_dict={
+          x: batch[0], y_: batch[1], keep_prob: 1.0})
+      print('step %d, training accuracy %g' % (i, train_accuracy))
+    train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+  # saver.restore(sess=sess,save_path='mnist/ckp')
+  # print('test accuracy %g' % accuracy.eval(feed_dict={
+  #        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
   print('test accuracy %g' % accuracy.eval(feed_dict={
-         x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
-
+         x: l_test[0], y_: l_test[1], keep_prob: 1.0}))
   # 创建模型保存目录
   # model_dir = "mnist"
   # model_name = "ckp"
