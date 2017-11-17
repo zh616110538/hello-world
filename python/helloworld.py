@@ -9,10 +9,10 @@ import numpy as np
 import random
 import tensorflow as tf
 
-f = open('somedata', 'rb')
+f = open('somedata.mydat', 'rb')
 l = pickle.load(f)
 f.close()
-f = open('testdata', 'rb')
+f = open('testdata.mydat', 'rb')
 l_test = pickle.load(f)
 f.close()
 
@@ -23,11 +23,11 @@ def next_batch(i,n):
 x = tf.placeholder(tf.float32, shape=[None, 784])
 y_ = tf.placeholder(tf.float32, shape=[None, 10])
 def weight_variable(shape):
-  initial = tf.truncated_normal(shape, stddev=0.5)
+  initial = tf.truncated_normal(shape, stddev=0.1)
   return tf.Variable(initial)
 
 def bias_variable(shape):
-  initial = tf.constant(0.5, shape=shape)
+  initial = tf.constant(0.1, shape=shape)
   return tf.Variable(initial)
 def conv2d(x, W):
   return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
@@ -65,7 +65,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
-  # saver = tf.train.Saver()
+  saver = tf.train.Saver()
   for i in range(20000):
     # batch = mnist.train.next_batch(50)
     batch = next_batch(i,50)
@@ -80,10 +80,9 @@ with tf.Session() as sess:
   print('test accuracy %g' % accuracy.eval(feed_dict={
          x: l_test[0], y_: l_test[1], keep_prob: 1.0}))
   # 创建模型保存目录
-  # model_dir = "mnist"
-  # model_name = "ckp"
-  # if not os.path.exists(model_dir):
-  #     os.mkdir(model_dir)
-  # # 保存模型
-  # saver.save(sess, os.path.join(model_dir, model_name))
-
+  model_dir = "mnist"
+  model_name = "ckp"
+  if not os.path.exists(model_dir):
+      os.mkdir(model_dir)
+  # 保存模型
+  saver.save(sess, os.path.join(model_dir, model_name))

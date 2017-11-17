@@ -111,32 +111,33 @@ def create_validate_code(size=(28, 28),
 
 
 if __name__ == "__main__":
-    l1 = np.zeros([60000,784],dtype=np.float32)
-    l2 = np.zeros([60000,10],dtype=np.float32)
+    l1 = np.zeros([10000,784],dtype=np.float32)
+    l2 = np.zeros([10000,10],dtype=np.float32)
 
-    for i in range(60000):
+    for i in range(10000):
         code_img = create_validate_code()
-        img = np.asarray(code_img[0])
-        # cv2.imshow('img', img1)
-        # cv2.waitKeyEx(0)
-        img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        img = cv2.medianBlur(img, 3)
-        # img[img>0] = 1
-        # cv2.imshow('img',img)
-        # cv2.waitKeyEx(0)
-        b = np.zeros([1,10])
-        b[0,int(code_img[1])] = 1
-        l1[i] = np.reshape(img,[1,784])
-        l2[i] = b
-    l1.tolist()
-    l2.tolist()
-    l = [l1,l2]
-    # f = open('testdata','wb')
+        code_img[0].save("zhuhao.jpg")
+    #     img = np.asarray(code_img[0])
+    #     # cv2.imshow('img', img1)
+    #     # cv2.waitKeyEx(0)
+    #     img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    #     # img = cv2.medianBlur(img, 3)
+    #     # img[img>0] = 1
+    #     # cv2.imshow('img',img)
+    #     # cv2.waitKeyEx(0)
+    #     b = np.zeros([1,10])
+    #     b[0,int(code_img[1])] = 1
+    #     l1[i] = np.asarray(img,dtype=np.float32).reshape(1,784)/255
+    #     l2[i] = b
+    # # l1.tolist()
+    # # l2.tolist()
+    # l = [l1,l2]
+    # f = open('testdata.mydat','wb')
     # pickle.dump(l,f)
     # f.close()
-    f = open('somedata', 'wb')
-    pickle.dump(l,f)
-    f.close()
+    # f = open('somedata.mydat', 'wb')
+    # pickle.dump(l,f)
+    # f.close()
         # cv2.imshow('img',img)
         # print(code_img[1])
         # cv2.waitKeyEx(1000)
