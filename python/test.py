@@ -134,7 +134,7 @@ def train_neural_network(input_image):
     argmax = tf.placeholder("float", [None, output])
     gt = tf.placeholder("float", [None])
 
-    action = tf.reduce_sum(tf.matmul(predict_action, argmax), reduction_indices=1)
+    action = tf.reduce_sum(tf.multiply(predict_action, argmax), reduction_indices=1)
     cost = tf.reduce_mean(tf.square(action - gt))
     optimizer = tf.train.AdamOptimizer(1e-6).minimize(cost)
 
@@ -149,11 +149,11 @@ def train_neural_network(input_image):
     input_image_data = np.stack((image, image, image, image), axis=2)
 
     with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
 
         saver = tf.train.Saver()
-        # saver.restore(sess,'q/game.ckp')
-        n = 0
+        saver.restore(sess,'q/game.ckp')
+        n = 50000
         epsilon = INITIAL_EPSILON
         while True:
             action_t = predict_action.eval(feed_dict={input_image: [input_image_data]})[0]
@@ -202,8 +202,8 @@ def train_neural_network(input_image):
             input_image_data = input_image_data1
             n = n + 1
 
-            # if n % 10000 == 0:
-            #     saver.save(sess, 'q/game.ckp', global_step=n)  # 保存模型
+            if n % 10000 == 0:
+                saver.save(sess, 'q/game.ckp')  # 保存模型
 
             print(n, "epsilon:", epsilon, " ", "action:", maxIndex, " ", "reward:", reward)
 
