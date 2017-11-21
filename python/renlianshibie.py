@@ -1,5 +1,8 @@
 # coding=utf-8
 
+# from tensorflow.examples.tutorials.mnist import input_data
+# mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+
 import os
 import pickle
 import numpy as np
@@ -28,8 +31,8 @@ def getPaddingSize(img):
         pass
     return top, bottom, left, right
 
-def readData(filename , h=64, w=64):
-    img = cv2.imread(filename)
+def readData(path,filename , h=64, w=64):
+    img = cv2.imread(path+'\\'+filename)
 
     top,bottom,left,right = getPaddingSize(img)
     # 将图片放大， 扩充图片边缘部分
@@ -41,7 +44,12 @@ xiaoping = [1,0]
 other = [0,1]
 data = []
 answer = []
-data.append(readData('xiaoping1.jpg'))
+for file in os.listdir('xiaoping'):
+    data.append(readData('xiaoping',file))
+    answer.append(xiaoping)
+for file in os.listdir('other'):
+    data.append(readData('other',file))
+    answer.append(other)
 
 x = tf.placeholder(tf.float32, shape=[None, 64 , 64 ,3])
 y_ = tf.placeholder(tf.float32, shape=[None, 2])
@@ -90,14 +98,34 @@ cross_entropy = tf.reduce_mean(
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-predict = tf.argmax(y_conv,1)
+
+tf.summary.scalar('loss', cross_entropy)
+tf.summary.scalar('accuracy', accuracy)
+merged_summary_op = tf.summary.merge_all()
+
 
 with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
   saver = tf.train.Saver()
-  saver.restore(sess=sess, save_path='renlian/ckp')
-  a = predict.eval(feed_dict={x: data, keep_prob: 1.0})[0]
-  if a==0:
-      print('xiaoping')
-  else:
-      print('other')
+  summary_writer = tf.summary.FileWriter('renlian/tmp', graph=tf.get_default_graph())
+  for i in range(1001):
+    # batch = mnist.train.next_batch(50)
+    # batch = next_batch(i,50)
+    _,loss,summary = sess.run([train_step,cross_entropy,merged_summary_op],feed_dict={x: data, y_: answer, keep_prob: 0.5})
+    summary_writer.add_summary(summary, i)
+    if i % 100 == 0:
+      train_accuracy = accuracy.eval(feed_dict={
+          x: data, y_: answer, keep_prob: 1.0})
+      print('step %d, training accuracy %g' % (i, train_accuracy))
+  # saver.restore(sess=sess,save_path='mnist/ckp')
+  # print('test accuracy %g' % accuracy.eval(feed_dict={
+  #        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+  # print('test accuracy %g' % accuracy.eval(feed_dict={
+  #        x: l_test[0], y_: l_test[1], keep_prob: 1.0}))
+  # 创建模型保存目录
+  model_dir = "renlian"
+  model_name = "ckp"
+  if not os.path.exists(model_dir):
+      os.mkdir(model_dir)
+  # 保存模型
+  saver.save(sess, os.path.join(model_dir, model_name))
