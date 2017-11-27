@@ -1,0 +1,20 @@
+
+In libcrypt/
+
+  Makefile: Makefile for lib/libcrypt
+
+  aes.h: header file for aes.c
+  aes.c: the implementation of AES.
+
+  md5.h: header file for md5.c 
+  md5.c: the implementation of MD5 (including the demo code)
+
+  sha256.h: header file for sha256.c 
+  sha256.c: the implementation of SHA-256 (including the demo code) 
+
+  hmac_md5.c: the implementation of HMAC-MD5.
+
+In demo/
+
+  aes_demo.c: demonstrate how to use AES to encrypt one block of data.
+  hmc_md5_demo.c: demonstrate how to use HMAC-MD5.
