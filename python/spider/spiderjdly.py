@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import os
 import traceback
 import re
+import time
 def download(url, filename):
     if os.path.exists(filename):
         print('file exists!')
@@ -26,27 +27,35 @@ def download(url, filename):
             os.remove(filename)
 
 
-if os.path.exists('imgs') is False:
-    os.makedirs('imgs')
+if os.path.exists('imgjd') is False:
+    os.makedirs('imgjd')
 
 start = 1
-end = 27
+end = 348
 for i in range(start, end + 1):
-    url = 'http://www.noen.com.cn/page/%d' % i
+    url = 'http://www.jdlingyu.fun/page/%d/' % i
     html = requests.get(url).text
     # print(html)
     soup = BeautifulSoup(html, 'html.parser')
-    for target in soup.find_all('a', class_="thumbnail"):
+    for target in soup.find_all('a', class_="viewsButton"):
         # print(target)
         target_url = target['href']
+        # print(target_url)
         target_html = requests.get(target_url).text
+        # print(target_html)
         soup = BeautifulSoup(target_html, 'html.parser')
-        for img in soup.find_all("img",class_=re.compile('aligncenter size-full.+')):
-            # print(img)
-            target_url = img['src']
-            print(target_url)
+        for img in soup.find_all([re.compile('img')]):
+            # print(str(img))
+            target_url = re.search(r'data-original="([^\s]+)"',str(img))
+            if(target_url):
+                # print(target_url.group(1))
+                target_url = target_url.group(1)
+            # target_url = img[r"data-original"]
             # print(target_url)
-            filename = os.path.join('imgs', target_url.split('/')[-1])
-            print(filename)
-            download(target_url, filename)
+            # print(target_url)
+                name = re.search(r'/([^/]+)$', target_url).group(1)
+                # print(name)
+                filename = 'imgjd/' + name
+                download(target_url, filename)
+        # time.sleep(1)
     print('%d / %d' % (i, end))
