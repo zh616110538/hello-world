@@ -1,2 +1,2 @@
 # hello-world
-create a new branch is quck and simple.
+记录一些平时的代码
