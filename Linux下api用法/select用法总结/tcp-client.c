@@ -16,7 +16,7 @@ int main(int argc,char *argv[])
   int sockfd,sendbytes;
   // char send[MAXLINE];
 
-   char send[MAXLINE];
+  char send[MAXLINE];
   char buf[MAXDATASIZE];
   struct hostent *host;
   struct sockaddr_in serv_addr;
@@ -51,10 +51,10 @@ int main(int argc,char *argv[])
   while(fgets(send,1024,stdin)!=NULL)
   {
      if((sendbytes = write(sockfd,send,100)) ==-1)
-  {
-    perror("send error \n");
-    exit(1);
-  }
+    {
+      perror("send error \n");
+      exit(1);
+    }
   }
   close(sockfd);
 }
