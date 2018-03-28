@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
 
     memset(&ser_addr, 0, sizeof(ser_addr));
     ser_addr.sin_family = AF_INET;
-    //ser_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
+    //inet_pton(client_fd,SERVER_IP,&ser_addr.sin_addr.s_addr);
     ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);  //注意网络序转换
     ser_addr.sin_port = htons(SERVER_PORT);  //注意网络序转换
 

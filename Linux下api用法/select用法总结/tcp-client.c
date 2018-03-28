@@ -16,7 +16,7 @@ int main(int argc,char *argv[])
   int sockfd,sendbytes;
   // char send[MAXLINE];
 
-   char send[MAXLINE];
+  char send[MAXLINE];
   char buf[MAXDATASIZE];
   struct hostent *host;
   struct sockaddr_in serv_addr;
@@ -40,6 +40,7 @@ int main(int argc,char *argv[])
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(SERVPORT);
   serv_addr.sin_addr = *((struct in_addr *)host->h_addr);
+  //inet_pton(AF_INET,"127.0.0.1",(void *)&serv_addr.sin_addr);
   bzero(&(serv_addr.sin_zero),8);
 
   if(connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(struct sockaddr)) ==-1)
@@ -50,10 +51,10 @@ int main(int argc,char *argv[])
   while(fgets(send,1024,stdin)!=NULL)
   {
      if((sendbytes = write(sockfd,send,100)) ==-1)
-  {
-    perror("send error \n");
-    exit(1);
-  }
+    {
+      perror("send error \n");
+      exit(1);
+    }
   }
   close(sockfd);
 }
