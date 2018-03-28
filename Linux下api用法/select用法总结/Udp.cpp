@@ -73,6 +73,19 @@ int Udp::send(const std::string msg,const std::string addr,int port)
 	return sendto(fd, msg.c_str(), msg.length(), 0, (struct sockaddr*)&dst, len);
 }
 
+int Udp::recv(std::string &s)
+{
+    char buf[1024];  //接收缓冲区，1024字节
+    memset(buf,0,1024);
+    socklen_t len;
+    int count;
+    struct sockaddr_in clent_addr;  //clent_addr用于记录发送方的地址信息
+	len = sizeof(clent_addr);
+	count = recvfrom(fd, buf, 1024, 0, (struct sockaddr*)&clent_addr, &len);  //recvfrom是拥塞函数，没有数据就一直拥塞
+	s = buf;
+	return count;
+}
+
 int Udp::recv(std::string &s,std::string &addr,int &port)
 {
     char buf[1024];  //接收缓冲区，1024字节

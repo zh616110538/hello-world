@@ -35,6 +35,7 @@ public:
 	~Udp();
 	void bind(int port);
 	int send(const std::string msg,const std::string addr,int port);
+	int recv(std::string &s);
 	int recv(std::string &s,std::string &addr,int &port);
 	void set_timeout(int time);
 	void show_timeout();
