@@ -1,3 +1,10 @@
+/*
+ * udp.c
+ *
+ *  Created on: 2018-3-27
+ *      Author: 朱浩
+ */
+
 #include "udp.h"
 
 
@@ -66,7 +73,7 @@ int Udp::send(const std::string msg,const std::string addr,int port)
 	return sendto(fd, msg.c_str(), msg.length(), 0, (struct sockaddr*)&dst, len);
 }
 
-int Udp::recv(std::string &s)
+int Udp::recv(std::string &s,std::string &addr,int &port)
 {
     char buf[1024];  //接收缓冲区，1024字节
     memset(buf,0,1024);
@@ -76,6 +83,8 @@ int Udp::recv(std::string &s)
 	len = sizeof(clent_addr);
 	count = recvfrom(fd, buf, 1024, 0, (struct sockaddr*)&clent_addr, &len);  //recvfrom是拥塞函数，没有数据就一直拥塞
 	s = buf;
+	addr = inet_ntoa(clent_addr.sin_addr);
+	port = ntohs(clent_addr.sin_port);
 	return count;
 }
 
@@ -91,7 +100,7 @@ void Udp::set_timeout(int time)
 
 void Udp::show_timeout()
 {
-	std::cout<<timeout<<std::endl;
+	std::cout<<"timeout is "<<timeout<<" s"<<std::endl;
 }
 
 struct sockaddr_in Udp::set_addr_port(const std::string ip,int port)
