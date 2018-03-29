@@ -66,6 +66,7 @@ void Parse::parse_file(const string &file)
 
 void Parse::parse_string(const string &s)
 {
+	clear();
 	size_t t;
 	vector<string> v_src,v_tmp;
 	separate(v_src, s,'\n');
