@@ -160,7 +160,12 @@ void Parse::update(const std::string &index,const std::string &value)
 	}
 }
 
-
+void Parse::clear()
+{
+	m.clear();
+	comment = "#";
+	delim = ':';
+}
 
 
 

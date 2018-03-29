@@ -27,8 +27,8 @@ class Parse {
 		void select(std::string &,const std::string &);
 		void erase(const std::string &);
 		void update(const std::string &,const std::string &);
+		void clear();
 		inline void insert(const std::string &s1,const std::string &s2){m.insert(m.begin(),std::pair<std::string,std::string>(s1,s2));}
-
 
 	private:
 		std::map<std::string, std::string> m;
