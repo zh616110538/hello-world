@@ -58,6 +58,7 @@ int main()
         perror("listen fail:");
         return -1;
     }
+    clilen = sizeof(client_addr);
     connfd = accept(sockfd,(struct sockaddr *)&client_addr,&clilen);
     if(connfd < 0)
     {
