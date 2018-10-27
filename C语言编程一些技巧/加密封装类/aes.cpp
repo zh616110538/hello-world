@@ -423,7 +423,7 @@ namespace aes {
     (b)[(i) + 3] = (uint8) ( (n)       );       \
 }
 
-/* decryption key schedule tables */
+	/* decryption key schedule tables */
 
 	int KT_init = 1;
 
@@ -767,23 +767,34 @@ namespace aes {
 		ctx = new aes_context;
 		aes_set_key(ctx, secret_key, 256);
 	}
-	
+
 	Encrypt::~Encrypt() {
-			delete ctx;
-		}
+		delete ctx;
+	}
 
 	void Encrypt::encrypt(std::vector<unsigned char>& input, std::vector<unsigned char>& output)
 	{
-		std::vector<unsigned char> tmp;
-		for (std::vector<unsigned char>::const_iterator it = input.begin(); it != input.end(); ++it)
-			tmp.push_back(*it);
-		size_t len = tmp.size();
+		size_t len = input.size()+4;
+		size_t actuallen = input.size();
 		unsigned char zeropad = len % 16;
+		std::vector<unsigned char> tmp(len + 16 - len % 16);
+		//std::vector<unsigned char>::const_iterator tmpit = input.begin();
+		//for (std::vector<unsigned char>::const_iterator it = input.begin(); it != input.end(); ++it,++tmpit)
+		//	tmp.push_back(*it);
+		size_t check = 0;
+		for (size_t i = 0; i < actuallen; ++i) {
+			tmp[i] = input[i];
+			check += input[i];
+		}
+		for (int i = 0; i < 4; ++i)
+		{
+			tmp[actuallen + i] = (check >> (i * 8)) & 255;
+		}
 		for (unsigned char i = 0; i < 15 - zeropad; ++i)
-			tmp.push_back(0);
-		tmp.push_back(zeropad);
+			tmp[len + i] = 0;
+		tmp[len + 15 - len % 16] = zeropad;
 		unsigned char buf[16];
-		for (std::vector<unsigned char>::iterator it = tmp.begin(); it != tmp.end(); it+=16)
+		for (std::vector<unsigned char>::iterator it = tmp.begin(); it != tmp.end(); it += 16)
 		{
 			for (int i = 0; i != 16; ++i)
 			{
@@ -801,10 +812,11 @@ namespace aes {
 	void Encrypt::decrypt(std::vector<unsigned char>& input, std::vector<unsigned char>& output)
 	{
 		if (input.size() % 16 != 0)
-			return;
-		std::vector<unsigned char> tmp;
+			throw std::exception( "Error input");
+		std::vector<unsigned char> tmp(input.size());
 		unsigned char buf[16];
-		for (std::vector<unsigned char>::const_iterator it = input.begin(); it != input.end(); it += 16)
+		size_t loop = 0;
+		for (std::vector<unsigned char>::const_iterator it = input.begin(); it != input.end(); it += 16, ++loop)
 		{
 			for (int i = 0; i != 16; ++i)
 			{
@@ -813,74 +825,126 @@ namespace aes {
 			aes_decrypt(ctx, buf, buf);
 			for (int i = 0; i != 16; ++i)
 			{
-				tmp.push_back(buf[i]);
+				tmp[loop * 16 + i] = buf[i];
 			}
 		}
 		unsigned char zeropad = tmp.back();
 		for (unsigned char i = 0; i < 16 - zeropad; ++i)
+		{
+			if (i > 0 && tmp.back() != 0)
+				throw std::exception( "Decrypt error");
 			tmp.pop_back();
+		}
+		size_t endcheck = 0;
+		size_t check = 0;
+		for (size_t i = 4; i > 0; --i)
+		{
+			unsigned char end = *(tmp.end() - 1);
+			tmp.pop_back();
+			endcheck = endcheck | (end << ((i - 1) * 8));
+		}
+		for (std::vector<unsigned char>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
+		{
+			check += *it;
+		}
+		if (check != endcheck)
+			throw std::exception( "Decrypt error");
 		output = tmp;
 	}
 
 	void Encrypt::encrypt_file(std::string& infile, std::string& outfile)
 	{
-		std::vector<unsigned char> input;
-		readfile(infile,input);
-		if (input.empty()) {
-			std::cout << "encrypt fail" << std::endl;
-			return;
+		try {
+			std::vector<unsigned char> input;
+			readfile(infile, input);
+			if (input.empty()) {
+				std::cout << "encrypt fail" << std::endl;
+				return;
+			}
+			encrypt(input, input);
+			writefile(outfile, input);
 		}
-		encrypt(input, input);
-		writefile(outfile, input);
+		catch (std::exception &ex)
+		{
+			throw ex;
+		}
 	}
 
 	void Encrypt::decrypt_file(std::string& infile, std::string& outfile)
 	{
-		std::vector<unsigned char> input;
-		readfile(infile, input);
-		if (input.empty()) {
-			std::cout << "encrypt fail" << std::endl;
-			return;
+		try {
+			std::vector<unsigned char> input;
+			readfile(infile, input);
+			if (input.empty()) {
+				std::cout << "encrypt fail" << std::endl;
+				return;
+			}
+			decrypt(input, input);
+			writefile(outfile, input);
 		}
-		decrypt(input, input);
-		writefile(outfile, input);
+		catch (std::exception &ex)
+		{
+			throw ex;
+		}
 	}
 
 	void Encrypt::readfile(std::string filename, std::vector<unsigned char>& input)
 	{
-		std::ifstream is(filename, std::ios::in | std::ios::binary);
-		if (is)
-		{
-			is.seekg(0, is.end);
-			int length = is.tellg();
-			is.seekg(0, is.beg);
-			char * buffer = new char[length];
-			is.read(buffer, length);
+		try {
+			std::ifstream is(filename, std::ios::in | std::ios::binary);
 			if (is)
 			{
-				for (int i = 0; i < length; ++i)
-					input.push_back(buffer[i]);
+				is.seekg(0, is.end);
+				int length = is.tellg();
+				is.seekg(0, is.beg);
+				char * buffer = new char[length];
+				is.read(buffer, length);
+				if (is)
+				{
+					input.resize(length);
+					for (int i = 0; i < length; ++i)
+						input[i] = buffer[i];
+				}
+				else {
+					//std::cout << "error: only " << is.gcount() << " could be read";
+					is.close();
+					delete[] buffer;
+					std::stringstream ss;
+					ss << "error: only " << is.gcount() << " could be read";
+					throw std::exception(ss.str().c_str());
+				}
+				is.close();
+				delete[] buffer;
 			}
-			else {
-				std::cout << "error: only " << is.gcount() << " could be read";
-			}
-			is.close();
-			delete[] buffer;
+			else
+				throw std::exception( "Can't read file");
+		}
+		catch (std::exception &ex)
+		{
+			throw ex;
 		}
 	}
 
 	void Encrypt::writefile(std::string filename, std::vector<unsigned char>& output)
 	{
-		std::ofstream is(filename, std::ios::out | std::ofstream::binary);
-		if (is)
+		try {
+			std::ofstream is(filename, std::ios::out | std::ofstream::binary);
+			if (is)
+			{
+				size_t length = output.size();
+				char *buffer = new char[length];
+				for (size_t i = 0; i < length; ++i)
+					buffer[i] = output[i];
+				is.write(buffer, length);
+				is.close();
+				delete[]buffer;
+			}
+			else
+				throw std::exception( "Can't create output file");
+		}
+		catch (std::exception &ex)
 		{
-			size_t length = output.size();
-			char *buffer = new char[length];
-			for (size_t i = 0; i < length; ++i)
-				buffer[i] = output[i];
-			is.write(buffer,length);
-			is.close();
-			delete[]buffer;
+			throw ex;
 		}
 	}
 

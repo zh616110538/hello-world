@@ -5,7 +5,8 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
+#include <exception>
+#include <sstream>
 #ifndef uint8
 #define uint8  unsigned char
 #endif
@@ -26,7 +27,7 @@ namespace aes {
 	int  aes_set_key(aes_context *ctx, uint8 *key, int nbits);
 	void aes_encrypt(aes_context *ctx, uint8 input[16], uint8 output[16]);
 	void aes_decrypt(aes_context *ctx, uint8 input[16], uint8 output[16]);
-	
+
 	class Encrypt {
 	public:
 		Encrypt();
@@ -38,7 +39,6 @@ namespace aes {
 	private:
 		aes_context *ctx;
 		static unsigned char secret_key[32];
-		const int textsize = 16;
 		void readfile(std::string filename, std::vector<unsigned char>&);
 		void writefile(std::string filename, std::vector<unsigned char>&);
 	};
