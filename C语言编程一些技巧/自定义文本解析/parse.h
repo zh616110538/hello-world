@@ -1,34 +1,30 @@
 #ifndef PARSE_H_
 #define PARSE_H_
 
-#include <iostream>
+
 #include <string>
 #include <map>
-#include <fstream>
-#include <vector>
-#include <sstream>
 
-void separate(std::vector<std::string> &dst, const std::string &src,
-		char delimiter);
-void read_file(std::string &dst, const std::string &file);
+
 
 class Parse {
 	public:
-		Parse();
-		Parse(const std::string &);
-		~Parse();
+		Parse(std::string commentsign = "#",char delimitersign = ':'):comment(commentsign),delim(delimitersign){}
+		Parse(const std::string &filename,std::string commentsign = "#",char delimitersign = ':'):
+			comment(commentsign),delim(delimitersign){parse_file(filename);}
+		~Parse(){}
 
 		void parse_file(const std::string &);
 		void parse_string(const std::string &);
-		void dump_string(std::string &);
-		void dump_file(const std::string &);
+		void dump2string(std::string &);
+		void dump2file(const std::string &);
 		void show();
-		void show(const std::string &);
-		void select(std::string &,const std::string &);
+		std::string select(const std::string &index);
+		void select(std::string &dst,const std::string &index);
 		void erase(const std::string &);
 		void update(const std::string &,const std::string &);
 		void clear();
-		inline void insert(const std::string &s1,const std::string &s2){m.insert(m.begin(),std::pair<std::string,std::string>(s1,s2));}
+		void insert(const std::string &s1,const std::string &s2){m.insert(m.begin(),std::pair<std::string,std::string>(s1,s2));}
 
 	private:
 		std::map<std::string, std::string> m;

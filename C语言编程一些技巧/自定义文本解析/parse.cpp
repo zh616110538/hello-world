@@ -1,8 +1,12 @@
 #include "parse.h"
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 
-void separate(vector<string> &dst,const string &src,char delimiter)
+static void separate(vector<string> &dst,const string &src,char delimiter)
 {
 	string s;
 	for(string::const_iterator it = src.begin();it!=src.end();++it)
@@ -21,7 +25,7 @@ void separate(vector<string> &dst,const string &src,char delimiter)
 		dst.push_back(s);
 }
 
-void read_file(std::string &s,const std::string &file)
+static void read_file(std::string &s,const std::string &file)
 {
 	ifstream in(file.c_str());
 	if(in){
@@ -44,19 +48,7 @@ inline void skip_space(string &s)
 	s.erase(it+1,s.end());
 }
 
-Parse::Parse():comment("#"),delim(':')
-{
 
-}
-
-Parse::Parse(const string &file):comment("#"),delim(':')
-{
-	parse_file(file);
-}
-Parse::~Parse()
-{
-
-}
 void Parse::parse_file(const string &file)
 {
 	string s;
@@ -90,46 +82,40 @@ void Parse::parse_string(const string &s)
 void Parse::show()
 {
 	for(map<string,string>::iterator it = m.begin();it != m.end();++it)
-		cout<<it->first<<" : "<<it->second<<endl;
-}
-
-void Parse::show(const string &index)
-{
-	string s;
-	select(s,index);
-	if(s.empty())
-		cout<<"error index"<<endl;
-	else
-		cout<<index<<" : "<<s<<endl;
+		cout<<it->first<<delim<<it->second<<endl;
 }
 
 void Parse::select(string &dst,const string &index)
 {
-	for(map<string,string>::iterator it = m.begin();it != m.end();++it)
-	{
-		if(it->first == index)
-		{
-			dst = it->second;
-			return;
-		}
-	}
+	map<string,string>::iterator it = m.find(index);
+	if(it != m.end())
+		dst = it->second;
 }
 
-void Parse::dump_string(std::string &s)
+string Parse::select(const string &index)
+{
+	map<string,string>::iterator it = m.find(index);
+	if(it != m.end())
+		return it->second;
+	else
+		return string();
+}
+
+void Parse::dump2string(std::string &s)
 {
 	stringstream buf;
 	for(map<string,string>::iterator it = m.begin();it != m.end();++it)
 	{
-		buf<<it->first<<" : "<<it->second<<'\n';
+		buf<<it->first<<delim<<it->second<<'\n';
 	}
 	s = buf.str();
 }
 
 
-void Parse::dump_file(const std::string &f)
+void Parse::dump2file(const std::string &f)
 {
 	string s;
-	dump_string(s);
+	dump2string(s);
 	ofstream out(f.c_str());
 	if(out)
 		out<<s;
@@ -137,35 +123,21 @@ void Parse::dump_file(const std::string &f)
 
 void Parse::erase(const std::string &index)
 {
-	map<string,string>::iterator it;
-	for(it = m.begin();it != m.end();++it)
-	{
-		if(it->first == index)
-		{
-			m.erase(it);
-			return;
-		}
-	}
+	map<string,string>::iterator it = m.find(index);
+	if(it != m.end())
+		m.erase(it);
 }
 
 void Parse::update(const std::string &index,const std::string &value)
 {
-	map<string,string>::iterator it;
-	for(it = m.begin();it != m.end();++it)
-	{
-		if(it->first == index)
-		{
-			it->second = value;
-			return;
-		}
-	}
+	map<string,string>::iterator it = m.find(index);
+	if(it != m.end())
+		it->second = value;
 }
 
 void Parse::clear()
 {
 	m.clear();
-	comment = "#";
-	delim = ':';
 }
 
 
