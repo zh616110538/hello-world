@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 
     memset(&ser_addr, 0, sizeof(ser_addr));
     ser_addr.sin_family = AF_INET;
-    //inet_pton(client_fd,SERVER_IP,&ser_addr.sin_addr.s_addr);
-    ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);  //注意网络序转换
+    inet_pton(AF_INET, SERVER_IP, &ser_addr.sin_addr.s_addr);
+    //ser_addr.sin_addr.s_addr = htonl(INADDR_ANY);  //注意网络序转换
     ser_addr.sin_port = htons(SERVER_PORT);  //注意网络序转换
 
     udp_msg_sender(client_fd, (struct sockaddr*)&ser_addr);
