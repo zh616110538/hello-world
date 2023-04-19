@@ -3,21 +3,7 @@
 	"sendHeader": [
 		{
 			"enable": true,
-			"name": "Bing",
-			"ruleType": "modifySendHeader",
-			"matchType": "regexp",
-			"pattern": "^http(s?)://(.*).bing\\.com/(.*)",
-			"exclude": "",
-			"group": "正常使用",
-			"isFunction": false,
-			"action": {
-				"name": "x-forwarded-for",
-				"value": "8.8.8.8"
-			}
-		},
-		{
-			"enable": true,
-			"name": "FakeEdge",
+			"name": "FakeEdge_legacy_ua",
 			"ruleType": "modifySendHeader",
 			"matchType": "regexp",
 			"pattern": "^http(s?)://(.*).bing\\.com/(.*)",
@@ -26,7 +12,21 @@
 			"isFunction": false,
 			"action": {
 				"name": "user-agent",
-				"value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.41"
+				"value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48"
+			}
+		},
+		{
+			"enable": true,
+			"name": "FakeEdge_new_ua",
+			"ruleType": "modifySendHeader",
+			"matchType": "regexp",
+			"pattern": "^http(s?)://(.*).bing\\.com/(.*)",
+			"exclude": "",
+			"group": "正常使用",
+			"isFunction": false,
+			"action": {
+				"name": "sec-ch-ua",
+				"value": "Chromium\";v=\"112\", \"Microsoft Edge\";v=\"112\", \"Not:A-Brand\";v=\"99"
 			}
 		}
 	],
